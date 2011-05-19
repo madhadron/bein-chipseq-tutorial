@@ -95,7 +95,7 @@ class Sampler(object):
         # with parameter p.  E[geometric] = 1/p, and we want the
         # offset to the beginning of the fragment to be one half
         # the fragment length, so p = 2/frag_len.
-        offset = max(0, int(math.ceil(math.log(random.random()) / math.log(1 - 2/float(self.frag_len)))))
+        offset = max(0, int(math.ceil(math.log(random.random()) / math.log(1 - (1 / float(1 + self.frag_len/2.0))))))
         read = self.sequences[chromosome][pos - offset : pos - offset + self.read_len]
         if len(read) == self.read_len:
             return read
