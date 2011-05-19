@@ -40,7 +40,7 @@ def main(argv=None):
         argv = sys.argv[1:]
     try:
         try:
-            opts, args = getopt.getopt(argv, "h", ["help"])
+            opts, args = getopt.getopt(argv, "ha:", ["help"])
         except getopt.error, msg:
             raise Usage(msg)
         for o, a in opts:
@@ -48,7 +48,7 @@ def main(argv=None):
                 print __doc__
                 print usage
                 sys.exit(0)
-            elif o in ("-p",):
+            elif o in ("-a",):
                 try:
                     alpha = float(a)
                     if alpha <= 0 or alpha >= 1:
@@ -75,9 +75,18 @@ def main(argv=None):
                 s.append(2*h[2] / float(h[1]))
             if h[2] != 0:
                 s.append(3*h[3] / float(h[2]))
-            m = s / float(n)
-            print m
-            # calculate threshold for alpha
+            m = sum(s)/float(len(s))
+
+            i = 0
+            s = 0
+            while True:
+                q = math.exp(-m) * m**i / math.factorial(i)
+                if s+q < 1-alpha:
+                    s += q
+                    i += 1
+                else:
+                    break
+            print i
         sys.exit(0)
     except Usage, err:
         print >>sys.stderr, err.msg
