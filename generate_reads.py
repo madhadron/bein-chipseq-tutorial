@@ -119,26 +119,26 @@ def main(argv=None):
                 print __doc__
                 print usage
                 sys.exit(0)
-            if o in ("-l",):
+            elif o in ("-l",):
                 try:
                     read_len = int(a)
                     if read_len < 1:
                         raise ValueError("Read length must be positive")
                 except ValueError, v:
                     raise Usage("Argument to -l must be a positive integer.")
-            if o in ("-L",):
+            elif o in ("-L",):
                 try:
                     frag_len = int(a)
                     if frag_len < read_len:
                         raise Usage("Fragment length must be no smaller than read length")
                 except ValueError, v:
                     raise Usage("Argument to -L must be a positive integer.")
-            if o in ("-o",):
+            elif o in ("-o",):
                 if os.path.exists(a):
                     raise Usage("Output file %s already exists" % a)
                 else:
                     output = open(a, 'w')
-            if o in ("-n",):
+            elif o in ("-n",):
                 try:
                     n_reads = int(a)
                     if n_reads < 1:
