@@ -1,0 +1,83 @@
+Toy chipseq
+
+Give the tutee a virus genome in FASTA, a bunch of reads, some of
+which map to it, and scripts.  Tell them to produce the enriched
+regions of the virus genome.
+
+
+* DONE Get an influenza genome
+Downloaded influenza genome from
+http://www.ncbi.nlm.nih.gov/genomes/FLU/Database/nph-select.cgi
+Influenza A virus (A/Anas crecca/Spain/1460/2008(H7N9))
+accession numbers HQ244404 - HQ44411
+
+* DONE Write a script that generates reads given centers, amplitudes, and a standard deviation for regions, plus a background level
+Reads should be negative binomial in length 5'-ward from binding site,
+where mean length is half the mean fragment length.  Mean fragment
+length is a parameter.
+
+* DONE Generate a big set of reads to get ~3x leftsite coverage of the genome.
+The genome is 13315 bases.  For 3x leftsite coverage, need 13315*3 =
+~40,000 reads.
+
+#+GENERATE_CENTERS
+import generate_reads
+import random
+import csv
+
+sequences = generate_reads.read_fasta('influenza.fa')
+chromosome_chooser = generate_reads.Chooser(dict((n,len(s)) for n,s in sequences.iteritems()))
+with open('centers.txt','w') as c:
+    w = csv.writer(c)
+    for i in xrange(85):
+        chromosome = chromosome_chooser.sample()
+        pos = random.randint(0, len(sequences[chromosome])-1)
+        mag = random.randint(100,1000)
+        w.writerow((chromosome,pos,mag))
+
+#+GENERATE_CENTERS
+
+Generated reads by calling:
+
+python generate_reads.py -n 40000 -o reads.txt influenza.fa centers.txt
+
+* DONE Write a perfect aligner in Python that loads genome in memory and spits out a TSV of the form "molecule\tleftposition"
+
+And I aligned reads.txt with 
+
+python align.py influenza.fa reads.txt > aligned.txt
+
+* DONE Write a pileup program that takes such TSV files and produces a TSV file of the form "chromosome\tposition\tpluscount"
+* Write a script to calculate a threshold by fitting the 0,1,2 terms of a Poisson distribution, producing a 95% threshold (or another if you specify)
+
+Tested that I was getting the right parameter by printing it and
+running with:
+
+import numpy
+import csv
+numpy.random.poisson(5, size=12)
+z = numpy.random.poisson(5, size=500)
+f = open('test.txt','w')
+r = csv.writer(f)
+for q in z:
+    r.writerow(['a','b',q])
+
+Then ran the script on test.txt.  Got 4.49561403509
+
+* DONE Write a script that smooths the pileup via a Gaussian filter, then thresholds it using the given threshold, and prints out all the regions.  Should handle offset on other strand properly in deciding if things are above threshold.  Both must be above threshold.
+
+Does a simple neighbor median smooth.  Thresholds it and returns
+regions, then dumps all regions not long enough (the standard
+deviation of a geometric distribution means they should be roughly
+sqrt(L^2/4 - L/2) long), then adds half the fragment length to the
+center of the region to get the estimated position of the center.
+Prints that.
+
+* Write up instructions on how to do this, and the final output.  Tell the user to not only calculate the regions, but the fraction of reads which align, the number of peaks per chromosome.
+
+python generate_reads.py -n 40000 influenza.fa centers.txt > reads.txt
+python align.py influenza.fa reads.txt > aligned.txt
+python pileup.py influenza.fa aligned.txt > piledup.txt
+python threshold_pileup.py `python calculate_threshold.py -a 0.01 piledup.txt` 100 piledup.txt
+
+Now explain it.
