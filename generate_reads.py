@@ -21,10 +21,9 @@ import math
 import getopt
 import random
 
-usage = """Usage: generate_reads.py [-h] [-s stdev] [-L frag_len] [-l read_len] [-o output] [-n n_reads] template.fasta centers.txt
+usage = """Usage: generate_reads.py [-h] [-L frag_len] [-l read_len] [-o output] [-n n_reads] template.fasta centers.txt
 
 -h              Print this message and exit
--s stdev        The standard deviation to use for the Gaussians (default: 5)
 -L frag_len     The mean length of sheared sequence fragments (default: 100)
 -l read_len     The length of reads to generate (default: 38)
 -o output       File to write to (default: stdout)
@@ -107,13 +106,12 @@ def main(argv=None):
     output = sys.stdout
     read_len = 38
     frag_len = 100
-    stdev = 5
     n_reads = 500
     if argv is None:
         argv = sys.argv[1:]
     try:
         try:
-            opts, args = getopt.getopt(argv, "hs:L:l:o:n:", ["help"])
+            opts, args = getopt.getopt(argv, "hL:l:o:n:", ["help"])
         except getopt.error, msg:
             raise Usage(msg)
         for o, a in opts:
@@ -121,13 +119,6 @@ def main(argv=None):
                 print __doc__
                 print usage
                 sys.exit(0)
-            if o in ("-s",):
-                try:
-                    stdev = int(a)
-                    if stdev < 1:
-                        raise ValueError("Stdev must be negative")
-                except ValueError, v:
-                    raise Usage("Argument to -s must be a positive integer.")
             if o in ("-l",):
                 try:
                     read_len = int(a)
@@ -172,10 +163,11 @@ def main(argv=None):
             peaks = csv.reader(c)
             peaks = [(chrom,int(pos),int(mag)) for chrom,pos,mag in peaks]
         
-        sampler = Sampler(genome, peaks, read_len, frag_len, stdev)
+        sampler = Sampler(genome, peaks, read_len, frag_len)
         
         for i in xrange(n_reads):
             output.write(sampler.sample())
+            output.write('\n')
 
         output.close()
 
